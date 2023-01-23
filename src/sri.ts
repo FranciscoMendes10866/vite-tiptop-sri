@@ -6,23 +6,23 @@ import { generateHash, isHtmlAsset, toBuffer } from "./utils";
 
 type IAlgos = "sha256"[] | "sha384"[] | "sha512"[] | string[];
 
-export interface IOptions {
+export interface ISRIOptions {
   selectors?: string[];
   hashAlgorithms?: IAlgos;
   crossOriginPolicy?: "anonymous" | "use-credentials";
   indexHtmlPath?: string;
 }
 
-type IPlugin = (options?: IOptions) => VitePlugin;
+type IPlugin = (options?: ISRIOptions) => VitePlugin;
 
 export const sri: IPlugin = (opts) => {
   const selectors = opts?.selectors ?? ["script", "link[rel=stylesheet]"];
   const algorithms = opts?.hashAlgorithms ?? ["sha512"];
   const crossOrigin = opts?.crossOriginPolicy ?? "anonymous";
-  const htmlPath = opts?.indexHtmlPath ?? "/";
+  const indexHtmlPath = opts?.indexHtmlPath ?? "/";
 
   return {
-    name: "vite-plugin-rsi",
+    name: "vite-tiptop-rsi",
     enforce: "post",
     apply: "build",
     generateBundle: async (_, bundle) => {
@@ -38,7 +38,7 @@ export const sri: IPlugin = (opts) => {
           for await (const element of elements) {
             const url = (
               $(element).attr("href") || $(element).attr("src")
-            )?.replace(htmlPath, "");
+            )?.replace(indexHtmlPath, "");
 
             if (!url) continue;
 
