@@ -1,0 +1,42 @@
+{
+  "name": "vite-tiptop-sri",
+  "version": "0.0.2",
+  "license": "MIT",
+  "description": "A Vite plugin that adds subresource integrity hashes to your index.html file at build time.",
+  "homepage": "https://github.com/FranciscoMendes10866/vite-tiptop-sri#README",
+  "bugs": {
+    "url": "https://github.com/FranciscoMendes10866/vite-tiptop-sri/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FranciscoMendes10866/vite-tiptop-sri.git"
+  },
+  "keywords": [
+    "Vite",
+    "Subresource",
+    "Integrity",
+    "SRI",
+    "plugin"
+  ],
+  "author": {
+    "name": "Francisco Mendes",
+    "email": "fmendes@protonmail.ch",
+    "url": "https://github.com/FranciscoMendes10866"
+  },
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "lint": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "tsup": "^6.5.0",
+    "typescript": "^4.9.3",
+    "vite": "^4.0.0"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "node-fetch": "^3.3.0"
+  }
+}
