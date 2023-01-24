@@ -86,7 +86,6 @@ export const sri: IPlugin = (opts) => {
     },
     writeBundle: async (normalizedOutputOptions) => {
       const { dir } = normalizedOutputOptions;
-
       if (!(dir && augmentManifest)) return;
 
       const resolveOuputFn = resolveOuputDir(dir);
@@ -100,12 +99,8 @@ export const sri: IPlugin = (opts) => {
 
         if (parsed) {
           const manifestPromisses = Object.values(parsed).map(async (chunk) => {
-            const resolveFile = await fs.readFile(resolveOuputFn(chunk.file));
-            const integrityHash = generateAssetIntegrity(
-              resolveFile,
-              algorithms
-            );
-            chunk.integrity = integrityHash;
+            const fileBuffer = await fs.readFile(resolveOuputFn(chunk.file));
+            chunk.integrity = generateAssetIntegrity(fileBuffer, algorithms);
           });
 
           await Promise.all(manifestPromisses);

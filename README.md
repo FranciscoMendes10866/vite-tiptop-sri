@@ -29,7 +29,7 @@ npm run build
 
 And finally check the `index.html` file inside the `dist/` folder.
 
-You also have the possibility of Subresource integrity in manifest assets.
+You also have the possibility of subresource integrity in manifest assets.
 
 ```js
 import { defineConfig } from "vite";
