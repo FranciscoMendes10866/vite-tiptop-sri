@@ -1,12 +1,13 @@
 import { createHash } from "crypto";
+import { resolve } from "path";
 
 import type { IOutputAsset, IOutputChunk } from "./types";
 
 type IChunk = IOutputAsset | IOutputChunk;
 
-export const generateHash = (source: Buffer, alg: string): string => {
-  const hash = createHash(alg).update(source).digest().toString("base64");
-  return `${alg.toLowerCase()}-${hash}`;
+export const generateHash = (source: Buffer, algo: string): string => {
+  const hash = createHash(algo).update(source).digest().toString("base64");
+  return `${algo.toLowerCase()}-${hash}`;
 };
 
 export const isHtmlAsset = (chunk: IChunk): chunk is IOutputAsset => {
@@ -21,3 +22,11 @@ export const toBuffer = (arrayBuffer: ArrayBuffer): Buffer => {
   }
   return newBuffer;
 };
+
+export const generateAssetIntegrity = (
+  source: Buffer,
+  algos: string[]
+): string => algos.map((algo) => generateHash(source, algo)).join(" ");
+
+export const resolveOuputDir = (outDir: string) => (path: string): string =>
+  resolve(outDir, path);

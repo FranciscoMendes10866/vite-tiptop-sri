@@ -56,3 +56,9 @@ export interface IOutputChunk extends IRenderedChunk {
   code: string;
   map: ISourceMap | null;
 }
+
+declare module "vite" {
+  interface ManifestChunk {
+    integrity: string;
+  }
+}

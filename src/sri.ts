@@ -1,8 +1,14 @@
+import fs from "fs/promises";
 import { load as loadHtml } from "cheerio";
 import fetch from "node-fetch";
-import type { Plugin as VitePlugin } from "vite";
+import type { Plugin as VitePlugin, Manifest } from "vite";
 
-import { generateHash, isHtmlAsset, toBuffer } from "./utils";
+import {
+  generateAssetIntegrity,
+  isHtmlAsset,
+  resolveOuputDir,
+  toBuffer,
+} from "./utils";
 
 type IAlgos = "sha256"[] | "sha384"[] | "sha512"[] | string[];
 
@@ -11,6 +17,8 @@ export interface ISRIOptions {
   hashAlgorithms?: IAlgos;
   crossOriginPolicy?: "anonymous" | "use-credentials";
   indexHtmlPath?: string;
+  manifestsPaths?: string[];
+  augmentManifest?: boolean;
 }
 
 type IPlugin = (options?: ISRIOptions) => VitePlugin;
@@ -20,6 +28,8 @@ export const sri: IPlugin = (opts) => {
   const algorithms = opts?.hashAlgorithms ?? ["sha512"];
   const crossOrigin = opts?.crossOriginPolicy ?? "anonymous";
   const indexHtmlPath = opts?.indexHtmlPath ?? "/";
+  const manifestPaths = opts?.manifestsPaths ?? ["manifest.json"];
+  const augmentManifest = opts?.augmentManifest ?? false;
 
   return {
     name: "vite-tiptop-rsi",
@@ -31,7 +41,7 @@ export const sri: IPlugin = (opts) => {
       );
 
       for (const illegibleItem of illegibleList) {
-        console.warn(`Insecure Hashing algorithm ${illegibleItem} provided.`);
+        console.error(`Insecure Hashing algorithm ${illegibleItem} provided.`);
       }
     },
     generateBundle: async (_, bundle) => {
@@ -64,17 +74,46 @@ export const sri: IPlugin = (opts) => {
               continue;
             }
 
-            const hashes = algorithms
-              .map((algo: string) => generateHash(buffer, algo))
-              .join(" ");
+            const integrityHash = generateAssetIntegrity(buffer, algorithms);
 
-            $(element).attr("integrity", hashes);
+            $(element).attr("integrity", integrityHash);
             $(element).attr("crossorigin", crossOrigin);
           }
 
           chunk.source = $.html();
         }
       }
+    },
+    writeBundle: async (normalizedOutputOptions) => {
+      const { dir } = normalizedOutputOptions;
+
+      if (!(dir && augmentManifest)) return;
+
+      const resolveOuputFn = resolveOuputDir(dir);
+
+      const promises = manifestPaths.map(async (manifestPath) => {
+        const path = resolveOuputFn(manifestPath);
+
+        const parsed: Manifest | undefined = await fs
+          .readFile(path, "utf-8")
+          .then(JSON.parse, () => undefined);
+
+        if (parsed) {
+          const manifestPromisses = Object.values(parsed).map(async (chunk) => {
+            const resolveFile = await fs.readFile(resolveOuputFn(chunk.file));
+            const integrityHash = generateAssetIntegrity(
+              resolveFile,
+              algorithms
+            );
+            chunk.integrity = integrityHash;
+          });
+
+          await Promise.all(manifestPromisses);
+          await fs.writeFile(path, JSON.stringify(parsed, null, 2));
+        }
+      });
+
+      await Promise.all(promises);
     },
   };
 };
