@@ -25,6 +25,15 @@ export const sri: IPlugin = (opts) => {
     name: "vite-tiptop-rsi",
     enforce: "post",
     apply: "build",
+    buildStart: () => {
+      const illegibleList = algorithms.filter((algo) =>
+        ["sha1", "md5"].includes(algo.toLowerCase())
+      );
+
+      for (const illegibleItem of illegibleList) {
+        console.warn(`Insecure Hashing algorithm ${illegibleItem} provided.`);
+      }
+    },
     generateBundle: async (_, bundle) => {
       for (const name in bundle) {
         const chunk = bundle[name];
@@ -51,7 +60,7 @@ export const sri: IPlugin = (opts) => {
               const arrayBuffer = await response.arrayBuffer();
               buffer = toBuffer(arrayBuffer);
             } else {
-              console.warn(`Could not resolve resource: ${url}`);
+              console.warn(`Unable resolve resource: ${url}`);
               continue;
             }
 
