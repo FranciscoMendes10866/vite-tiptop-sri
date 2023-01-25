@@ -1,33 +1,14 @@
 import fs from "fs/promises";
 import { load as loadHtml } from "cheerio";
 import fetch from "node-fetch";
-import type { Plugin as VitePlugin, Manifest } from "vite";
 
-declare module "vite" {
-  interface ManifestChunk {
-    integrity: string;
-  }
-}
-
+import type { IPlugin, IManifest } from "./types";
 import {
   generateAssetIntegrity,
   minifyHtml,
   resolveOuputDir,
   toBuffer,
 } from "./utils";
-
-type IAlgos = "sha256"[] | "sha384"[] | "sha512"[] | string[];
-
-export interface ISRIOptions {
-  selectors?: string[];
-  hashAlgorithms?: IAlgos;
-  crossOriginPolicy?: "anonymous" | "use-credentials";
-  indexHtmlPath?: string;
-  manifestsPaths?: string[];
-  augmentManifest?: boolean;
-}
-
-type IPlugin = (options?: ISRIOptions) => VitePlugin;
 
 const pluginSetup: IPlugin = (opts) => {
   const selectors = opts?.selectors ?? ["script", "link[rel=stylesheet]"];
@@ -61,7 +42,7 @@ const pluginSetup: IPlugin = (opts) => {
       const promises = manifestPaths.map(async (manifestPath) => {
         const path = resolveOuputFn(manifestPath);
 
-        const parsed: Manifest | undefined = await fs
+        const parsed: IManifest = await fs
           .readFile(path, "utf-8")
           .then(JSON.parse, () => undefined);
 
