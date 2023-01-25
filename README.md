@@ -14,7 +14,7 @@ Make the following changes to `vite.config.js`:
 
 ```js
 import { defineConfig } from "vite";
-import { sri } from "vite-tiptop-sri";
+import sri from "vite-tiptop-sri";
 
 export default defineConfig({
   plugins: [sri()],
@@ -33,7 +33,7 @@ You also have the possibility of subresource integrity in manifest assets.
 
 ```js
 import { defineConfig } from "vite";
-import { sri } from "vite-tiptop-sri";
+import sri from "vite-tiptop-sri";
 
 export default defineConfig({
   build: {
@@ -47,7 +47,7 @@ By default it will get the `manifest.json`, but others can be specified by takin
 
 ```js
 import { defineConfig } from "vite";
-import { sri } from "vite-tiptop-sri";
+import sri from "vite-tiptop-sri";
 
 export default defineConfig({
   build: {
