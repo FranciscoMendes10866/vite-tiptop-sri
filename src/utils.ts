@@ -22,10 +22,11 @@ export const toBuffer = (arrayBuffer: ArrayBuffer): Buffer => {
 export const generateAssetIntegrity = (
   source: Buffer,
   algos: string[]
-): string => {
-  return algos.map((algo) => generateHash(source, algo)).join(" ");
-}
+): string => algos.map((algo) => generateHash(source, algo)).join(" ");
 
-export const resolveOuputDir = (outDir: string) => (path: string): string => {
-  return resolve(outDir, path)
-}
+export const resolveOuputDir =
+  (outDir: string) =>
+  (path: string): string =>
+    resolve(outDir, path);
+
+export const minifyHtml = (html: string) => html.replace(/\s+/g, " ");

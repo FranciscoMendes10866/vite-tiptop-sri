@@ -3,7 +3,12 @@ import { load as loadHtml } from "cheerio";
 import fetch from "node-fetch";
 import type { Plugin as VitePlugin, Manifest } from "vite";
 
-import { generateAssetIntegrity, resolveOuputDir, toBuffer } from "./utils";
+import {
+  generateAssetIntegrity,
+  minifyHtml,
+  resolveOuputDir,
+  toBuffer,
+} from "./utils";
 
 type IAlgos = "sha256"[] | "sha384"[] | "sha512"[] | string[];
 
@@ -104,7 +109,7 @@ export const sri: IPlugin = (opts) => {
         $(element).attr("crossorigin", crossOrigin);
       }
 
-      await fs.writeFile(`${buildDir}/index.html`, $.html());
+      await fs.writeFile(`${buildDir}/index.html`, minifyHtml($.html()));
     },
   };
 };
