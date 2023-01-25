@@ -75,7 +75,8 @@ export const sri: IPlugin = (opts) => {
     closeBundle: async () => {
       if (!buildDir) return;
 
-      const html = await fs.readFile(`${buildDir}/index.html`);
+      const outputFile = `${buildDir}/index.html`
+      const html = await fs.readFile(outputFile);
 
       const $ = loadHtml(html);
       const elements = $(selectors.join()).get();
@@ -109,7 +110,7 @@ export const sri: IPlugin = (opts) => {
         $(element).attr("crossorigin", crossOrigin);
       }
 
-      await fs.writeFile(`${buildDir}/index.html`, minifyHtml($.html()));
+      await fs.writeFile(outputFile, minifyHtml($.html()));
     },
   };
 };
