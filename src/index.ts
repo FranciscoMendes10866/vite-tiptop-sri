@@ -3,6 +3,12 @@ import { load as loadHtml } from "cheerio";
 import fetch from "node-fetch";
 import type { Plugin as VitePlugin, Manifest } from "vite";
 
+declare module "vite" {
+  interface ManifestChunk {
+    integrity: string;
+  }
+}
+
 import {
   generateAssetIntegrity,
   minifyHtml,

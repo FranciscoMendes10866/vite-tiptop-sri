@@ -1,10 +1,6 @@
 import { createHash } from "crypto";
 import { resolve } from "path";
 
-import type { IOutputAsset, IOutputChunk } from "./types";
-
-type IChunk = IOutputAsset | IOutputChunk;
-
 export const generateHash = (source: Buffer, algo: string): string => {
   const hash = createHash(algo).update(source).digest().toString("base64");
   return `${algo.toLowerCase()}-${hash}`;
