@@ -3,12 +3,7 @@ import { load as loadHtml } from "cheerio";
 import fetch from "node-fetch";
 import type { Plugin as VitePlugin, Manifest } from "vite";
 
-import {
-  generateAssetIntegrity,
-  isHtmlAsset,
-  resolveOuputDir,
-  toBuffer,
-} from "./utils";
+import { generateAssetIntegrity, resolveOuputDir, toBuffer } from "./utils";
 
 type IAlgos = "sha256"[] | "sha384"[] | "sha512"[] | string[];
 
@@ -31,6 +26,8 @@ export const sri: IPlugin = (opts) => {
   const manifestPaths = opts?.manifestsPaths ?? ["manifest.json"];
   const augmentManifest = opts?.augmentManifest ?? false;
 
+  let buildDir: string | undefined = undefined;
+
   return {
     name: "vite-tiptop-rsi",
     enforce: "post",
@@ -44,51 +41,11 @@ export const sri: IPlugin = (opts) => {
         console.error(`Insecure Hashing algorithm ${illegibleItem} provided.`);
       }
     },
-    generateBundle: async (_, bundle) => {
-      for (const name in bundle) {
-        const chunk = bundle[name];
-
-        if (isHtmlAsset(chunk)) {
-          const htmlSlice = chunk.source.toString();
-
-          const $ = loadHtml(htmlSlice);
-          const elements = $(selectors.join()).get();
-
-          for await (const element of elements) {
-            const url = (
-              $(element).attr("href") || $(element).attr("src")
-            )?.replace(indexHtmlPath, "");
-
-            if (!url) continue;
-
-            let buffer: Buffer;
-            if (url in bundle) {
-              //@ts-ignore (both of them are string | undefined)
-              buffer = Buffer.from(bundle[url].code || bundle[url].source);
-            } else if (url.startsWith("http")) {
-              const response = await fetch(url);
-              const arrayBuffer = await response.arrayBuffer();
-              buffer = toBuffer(arrayBuffer);
-            } else {
-              console.warn(`Unable resolve resource: ${url}`);
-              continue;
-            }
-
-            const integrityHash = generateAssetIntegrity(buffer, algorithms);
-
-            $(element).attr("integrity", integrityHash);
-            $(element).attr("crossorigin", crossOrigin);
-          }
-
-          chunk.source = $.html();
-        }
-      }
-    },
     writeBundle: async (normalizedOutputOptions) => {
-      const { dir } = normalizedOutputOptions;
-      if (!(dir && augmentManifest)) return;
+      buildDir = normalizedOutputOptions.dir;
+      if (!(buildDir && augmentManifest)) return;
 
-      const resolveOuputFn = resolveOuputDir(dir);
+      const resolveOuputFn = resolveOuputDir(buildDir);
 
       const promises = manifestPaths.map(async (manifestPath) => {
         const path = resolveOuputFn(manifestPath);
@@ -109,6 +66,45 @@ export const sri: IPlugin = (opts) => {
       });
 
       await Promise.all(promises);
+    },
+    closeBundle: async () => {
+      if (!buildDir) return;
+
+      const html = await fs.readFile(`${buildDir}/index.html`);
+
+      const $ = loadHtml(html);
+      const elements = $(selectors.join()).get();
+
+      for await (const element of elements) {
+        const url = (
+          $(element).attr("href") || $(element).attr("src")
+        )?.replace(indexHtmlPath, "");
+
+        if (!url) continue;
+
+        let buffer: Buffer;
+        const elementPath = `${buildDir}/${url}`;
+        const doesFileExist = await fs.stat(elementPath);
+
+        if (doesFileExist) {
+          const file = await fs.readFile(elementPath);
+          buffer = Buffer.from(file);
+        } else if (url.startsWith("http")) {
+          const response = await fetch(url);
+          const arrayBuffer = await response.arrayBuffer();
+          buffer = toBuffer(arrayBuffer);
+        } else {
+          console.warn(`Unable resolve resource: ${url}`);
+          continue;
+        }
+
+        const integrityHash = generateAssetIntegrity(buffer, algorithms);
+
+        $(element).attr("integrity", integrityHash);
+        $(element).attr("crossorigin", crossOrigin);
+      }
+
+      await fs.writeFile(`${buildDir}/index.html`, $.html());
     },
   };
 };

@@ -1,6 +1,6 @@
 {
   "name": "vite-tiptop-sri",
-  "version": "0.0.7",
+  "version": "0.0.8-beta.3",
   "license": "MIT",
   "description": "A Vite extension that adds Subresource Integrity at build time.",
   "homepage": "https://github.com/FranciscoMendes10866/vite-tiptop-sri#README",
@@ -12,21 +12,25 @@
     "url": "git+https://github.com/FranciscoMendes10866/vite-tiptop-sri.git"
   },
   "keywords": [
-    "Vite",
-    "Subresource",
-    "Integrity",
-    "SRI",
-    "plugin"
+    "vite",
+    "subresource",
+    "integrity",
+    "sri",
+    "plugin",
+    "manifest",
+    "lazy",
+    "load"
   ],
   "author": {
     "name": "Francisco Mendes",
     "email": "fmendes_dev@protonmail.ch",
     "url": "https://github.com/FranciscoMendes10866"
   },
-  "main": "dist/index.mjs",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --minify --treeshake",
+    "build": "tsup src/index.ts --format cjs,esm --dts --minify --treeshake",
     "lint": "tsc"
   },
   "devDependencies": {

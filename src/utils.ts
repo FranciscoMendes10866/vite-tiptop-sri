@@ -10,10 +10,6 @@ export const generateHash = (source: Buffer, algo: string): string => {
   return `${algo.toLowerCase()}-${hash}`;
 };
 
-export const isHtmlAsset = (chunk: IChunk): chunk is IOutputAsset => {
-  return chunk.fileName.endsWith(".html") && chunk.type === "asset";
-};
-
 export const toBuffer = (arrayBuffer: ArrayBuffer): Buffer => {
   const newBuffer = Buffer.alloc(arrayBuffer.byteLength);
   const view = new Uint8Array(arrayBuffer);
