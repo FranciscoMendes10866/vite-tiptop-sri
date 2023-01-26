@@ -1,6 +1,6 @@
 {
   "name": "vite-tiptop-sri",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "license": "MIT",
   "description": "A Vite extension that adds Subresource Integrity at build time.",
   "homepage": "https://github.com/FranciscoMendes10866/vite-tiptop-sri#README",

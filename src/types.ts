@@ -15,6 +15,7 @@ export interface ISRIOptions {
   indexHtmlPath?: string;
   manifestsPaths?: string[];
   augmentManifest?: boolean;
+  filesToIgnore?: string[];
 }
 
 export type IPlugin = (options?: ISRIOptions) => VitePlugin;

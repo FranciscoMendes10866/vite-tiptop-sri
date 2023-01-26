@@ -17,6 +17,7 @@ const pluginSetup: IPlugin = (opts) => {
   const indexHtmlPath = opts?.indexHtmlPath ?? "/";
   const manifestPaths = opts?.manifestsPaths ?? ["manifest.json"];
   const augmentManifest = opts?.augmentManifest ?? false;
+  const filesToIgnore = opts?.filesToIgnore ?? [];
 
   let buildDir: string | undefined = undefined;
 
@@ -39,7 +40,7 @@ const pluginSetup: IPlugin = (opts) => {
 
       const resolveOuputFn = resolveOuputDir(buildDir);
 
-      const promises = manifestPaths.map(async (manifestPath) => {
+      for await (const manifestPath of manifestPaths) {
         const path = resolveOuputFn(manifestPath);
 
         const parsed: IManifest = await fs
@@ -47,17 +48,16 @@ const pluginSetup: IPlugin = (opts) => {
           .then(JSON.parse, () => undefined);
 
         if (parsed) {
-          const manifestPromisses = Object.values(parsed).map(async (chunk) => {
-            const fileBuffer = await fs.readFile(resolveOuputFn(chunk.file));
+          for await (const chunk of Object.values(parsed)) {
+            const currentFile = chunk.file;
+            if (filesToIgnore.includes(currentFile)) continue;
+            const fileBuffer = await fs.readFile(resolveOuputFn(currentFile));
             chunk.integrity = generateAssetIntegrity(fileBuffer, algorithms);
-          });
+          }
 
-          await Promise.all(manifestPromisses);
           await fs.writeFile(path, JSON.stringify(parsed, null, 2));
         }
-      });
-
-      await Promise.all(promises);
+      }
     },
     closeBundle: async () => {
       if (!buildDir) return;
@@ -73,7 +73,7 @@ const pluginSetup: IPlugin = (opts) => {
           $(element).attr("href") || $(element).attr("src")
         )?.replace(indexHtmlPath, "");
 
-        if (!url) continue;
+        if (!url || filesToIgnore.includes(url)) continue;
 
         let buffer: Buffer;
         const elementPath = `${buildDir}/${url}`;
