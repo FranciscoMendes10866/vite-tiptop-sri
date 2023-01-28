@@ -62,6 +62,25 @@ export default defineConfig({
 });
 ```
 
+If you have a script that changes its content after the build process, you can ignore it as follows:
+
+```js
+import { defineConfig } from "vite";
+import sri from "vite-tiptop-sri";
+
+export default defineConfig({
+  build: {
+    manifest: true,
+  },
+  plugins: [
+    sri({
+      augmentManifest: true,
+      filesToIgnore: ["/environment.js"],
+    }),
+  ],
+});
+```
+
 ## Credits
 
 This package was inspired by the following projects:
